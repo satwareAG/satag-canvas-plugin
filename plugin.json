@@ -1,0 +1,129 @@
+{
+  "id": "render_interactive_canvas",
+  "uuid": "ba995a33-eaca-4037-abfd-8772a617ed2a",
+  "emoji": "🕹️",
+  "title": "satware® AI Canvas",
+  "system": false,
+  "createdAt": "2026-08-24T00:00:00.000Z",
+  "version": "1.0.0",
+  "iconURL": "https://custom.typingmind.com/assets/plugins/interactive-canvas.webp",
+  "githubURL": "https://github.com/satwareAG/satag-canvas-plugin",
+  "disabled": false,
+  "syncedAt": null,
+  "implementationType": "javascript",
+  "outputType": "render_html",
+  "openaiSpec": {
+    "name": "render_interactive_canvas",
+    "parameters": {
+      "type": "object",
+      "required": [
+        "htmlSource"
+      ],
+      "properties": {
+        "htmlSource": {
+          "type": "string",
+          "description": "The full HTML source to render to the canvas. Must be a complete document (e.g. starting with <!DOCTYPE html> or <html>). After this initial render, prefer the `update_interactive_canvas` tool to make small edits — it is much faster and uses far fewer tokens than re-emitting the entire HTML."
+        },
+        "canvasHeight": {
+          "type": "number",
+          "description": "The height of the canvas in pixels. Default is 500."
+        }
+      }
+    },
+    "description": "Render an interactive canvas with HTML source to the user interface. The HTML source can include JavaScript and CSS to create interactive elements. This can be used to create custom user interfaces, games, demos, charts, and more. The canvas width is always 100% of the container width, and the height can be specified in pixels. Use this for the FIRST render and for full rewrites. For small follow-up tweaks to a canvas you have already rendered, prefer `update_interactive_canvas`."
+  },
+  "code": "",
+  "httpAction": null,
+  "oauthConfig": null,
+  "permissions": [],
+  "userSettings": null,
+  "isServerPlugin": false,
+  "turnedOnByDefault": true,
+  "authenticationType": "AUTH_TYPE_NONE",
+  "sharedOAuthConnectionID": null,
+  "pluginFunctions": [
+    {
+      "id": "db24d0be-d2f9-4f68-bc66-effc60e504b4",
+      "name": "render_interactive_canvas",
+      "implementationType": "javascript",
+      "outputType": "render_html",
+      "openaiSpec": {
+        "name": "render_interactive_canvas",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "htmlSource"
+          ],
+          "properties": {
+            "htmlSource": {
+              "type": "string",
+              "description": "The full HTML source to render to the canvas. Must be a complete document (e.g. starting with <!DOCTYPE html> or <html>). After this initial render, prefer the `update_interactive_canvas` tool to make small edits — it is much faster and uses far fewer tokens than re-emitting the entire HTML."
+            },
+            "canvasHeight": {
+              "type": "number",
+              "description": "The height of the canvas in pixels. Default is 500."
+            }
+          }
+        },
+        "description": "Render an interactive canvas with HTML source to the user interface. The HTML source can include JavaScript and CSS to create interactive elements. This can be used to create custom user interfaces, games, demos, charts, and more. The canvas width is always 100% of the container width, and the height can be specified in pixels. Use this for the FIRST render and for full rewrites. For small follow-up tweaks to a canvas you have already rendered, prefer `update_interactive_canvas`."
+      },
+      "code": "async function render_interactive_canvas(params, userSettings) {\n  return params.htmlSource;\n}\n",
+      "httpAction": null
+    },
+    {
+      "id": "8c83cae9-7b82-4fcf-a58c-beb1ede6dbd4",
+      "name": "update_interactive_canvas",
+      "implementationType": "javascript",
+      "outputType": "render_html",
+      "openaiSpec": {
+        "name": "update_interactive_canvas",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "edits"
+          ],
+          "properties": {
+            "edits": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "oldText",
+                  "newText"
+                ],
+                "properties": {
+                  "newText": {
+                    "type": "string",
+                    "description": "The replacement text. Use an empty string to delete the matched region."
+                  },
+                  "oldText": {
+                    "type": "string",
+                    "description": "The exact substring to find in the current HTML. Whitespace, casing and punctuation must match byte-for-byte. Must occur exactly once in the current HTML."
+                  }
+                }
+              },
+              "minItems": 1,
+              "description": "An ordered list of search-and-replace edits to apply to the most recently rendered interactive canvas HTML. Edits are applied sequentially: each edit operates on the result of the previous one. Each `oldText` must appear EXACTLY ONCE in the current HTML — include enough surrounding context (whitespace and neighbouring tags) to make the match unique. To insert new content, set `oldText` to a unique anchor that already exists and put both that anchor and the new content into `newText`. To delete content, set `newText` to an empty string."
+            }
+          }
+        },
+        "description": "Apply small, targeted edits to the most recently rendered interactive canvas instead of re-emitting the full HTML. Each edit performs an exact, literal find-and-replace on the current HTML. Use this WHENEVER you only need to tweak parts of an existing canvas you previously rendered with `render_interactive_canvas` — it is much faster and uses far fewer output tokens than re-emitting the entire HTML.\n\nRules:\n- Do NOT use this for the very first render — use `render_interactive_canvas` instead.\n- Each `oldText` must match EXACTLY ONCE in the current HTML; include enough surrounding context to make it unique. If a match is ambiguous (matches more than once) or missing, the call will fail and you should retry with more context, or fall back to `render_interactive_canvas` with the full updated HTML.\n- Edits are applied in order; later edits see the result of earlier ones.\n- Prefer many small edits over one big rewrite — it makes failures localised and easier to retry."
+      },
+      "code": "async function update_interactive_canvas(params, userSettings, authorizedResources) {\n  var previous =\n    (authorizedResources && authorizedResources.previousRunOutput) || '';\n\n  if (typeof previous !== 'string' || !previous.length) {\n    throw new Error(\n      'No previously rendered interactive canvas found to patch. Call `render_interactive_canvas` first to render the initial HTML, then use `update_interactive_canvas` for follow-up edits.',\n    );\n  }\n\n  var edits = params && params.edits;\n  if (!Array.isArray(edits) || edits.length === 0) {\n    throw new Error(\n      '`edits` must be a non-empty array of {oldText, newText} objects.',\n    );\n  }\n\n  var html = previous;\n  for (var i = 0; i < edits.length; i++) {\n    var edit = edits[i] || {};\n    var oldText = edit.oldText;\n    var newText = edit.newText;\n\n    if (typeof oldText !== 'string' || typeof newText !== 'string') {\n      throw new Error(\n        'Edit #' +\n          (i + 1) +\n          ' must have string `oldText` and `newText` properties.',\n      );\n    }\n    if (!oldText.length) {\n      throw new Error(\n        'Edit #' +\n          (i + 1) +\n          ' has an empty `oldText`. Provide a non-empty substring to match.',\n      );\n    }\n\n    var firstIndex = html.indexOf(oldText);\n    if (firstIndex === -1) {\n      throw new Error(\n        'Edit #' +\n          (i + 1) +\n          \": `oldText` was not found in the current HTML. Make sure it is copied EXACTLY (including whitespace and casing) from the current HTML, or fall back to `render_interactive_canvas` with the full updated HTML.\",\n      );\n    }\n    var lastIndex = html.lastIndexOf(oldText);\n    if (firstIndex !== lastIndex) {\n      throw new Error(\n        'Edit #' +\n          (i + 1) +\n          \": `oldText` matched more than once in the current HTML. Include more surrounding context so it matches exactly once.\",\n      );\n    }\n\n    html =\n      html.slice(0, firstIndex) + newText + html.slice(firstIndex + oldText.length);\n  }\n\n  return html;\n}\n",
+      "httpAction": null
+    }
+  ],
+  "overviewMarkdown": "# satware® AI Canvas\n\n## Overview / Überblick\n\n### English\n\n**satware® AI Canvas** lets the AI create interactive canvases in the chat: forms, HTML/JS/CSS apps, games, visualizations, charts, and any other interactive content. Runs natively in the browser iframe - no server process, no MCP dependency.\n\n**Tools:**\n- **render_interactive_canvas**: Render a complete HTML document as an interactive canvas. Use for the FIRST render and for full rewrites.\n- **update_interactive_canvas**: Apply small find-and-replace edits to the most recently rendered canvas. Much faster and uses far fewer tokens than re-emitting the whole HTML.\n\n### Deutsch\n\n**satware® AI Canvas** ermöglicht der KI, interaktive Canvases im Chat zu erstellen: Formulare, HTML/JS/CSS-Anwendungen, Spiele, Visualisierungen, Diagramme und beliebige andere interaktive Inhalte. Läuft nativ im Browser-iFrame - kein Serverprozess, keine MCP-Abhängigkeit.\n\n**Werkzeuge:**\n- **render_interactive_canvas**: Rendert ein vollständiges HTML-Dokument als interaktiven Canvas. Für den ERSTEN Render und komplette Neuschreibungen.\n- **update_interactive_canvas**: Wendet kleine Suchen-und-Ersetzen-Bearbeitungen auf den zuletzt gerenderten Canvas an. Deutlich schneller und token-sparender als die erneute Ausgabe des gesamten HTML.\n\n### Beispielanfragen / Example usage\n\n> create a form with a text input and a submit button\n\n> render a simple tictactoe game\n\n> render a smiley face in SVG in the interactive canvas\n",
+  "dynamicContextEndpoints": [
+    {
+      "id": "ac9f3722-8caf-4cc1-96ca-b760efd7526d",
+      "url": "",
+      "name": "canvas-environment-constraints",
+      "method": "GET",
+      "source": "static",
+      "staticContent": "Canvas rendering environment constraints:\n1. Sandbox: the rendering iframe has NO allow-same-origin token. Do NOT access localStorage, sessionStorage, indexedDB, or document.cookie - they throw SecurityError. Manage app state with plain in-memory JavaScript variables.\n2. Strict CSP: external scripts load ONLY from whitelisted CDNs: https://cdn.jsdelivr.net, https://cdnjs.cloudflare.com, https://ajax.googleapis.com, https://ajax.aspnetcdn.com, https://unpkg.com, https://stackpath.bootstrapcdn.com. Any other script domain is blocked (e.g. https://cdn.tailwindcss.com - use the cdnjs CSS variant instead).\n3. Deferred asset pipeline: render a lightweight loading screen instantly with inline styles, then inject external dependencies programmatically via JavaScript promises, and transition to the application view once promises resolve. This prevents UI freezes during network requests.",
+      "cacheDurationHours": 1,
+      "cacheRefreshPolicy": "REFRESH_NEVER"
+    }
+  ]
+}
