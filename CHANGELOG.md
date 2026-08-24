@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Public mirror initialized and CI auto-mirror verified (runs 17099-17104)
+
 ## [1.0.0] - 2026-08-24
 
 ### Added
