@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Public mirror initialized and CI auto-mirror verified (runs 17099-17104)
+- Public mirror initialized and CI auto-mirror verified (runs 17099-17105)
+- `GH_MIRROR_TOKEN` rotated to fine-grained PAT scoped to the mirror repo
 
 ## [1.0.0] - 2026-08-24
 
