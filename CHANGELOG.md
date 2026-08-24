@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Public mirror initialized and CI auto-mirror verified (runs 17099-17105)
 - `GH_MIRROR_TOKEN` rotated to fine-grained PAT scoped to the mirror repo
+- Dropped `iconURL` (TypingMind CDN) per fleet convention (key omitted, like 6/9 sibling plugins)
 
 ## [1.0.0] - 2026-08-24
 
